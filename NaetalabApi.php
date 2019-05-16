@@ -48,7 +48,7 @@ if(!class_exists('NaetalabApi')){
             } );
         }
         function deactivate(){
-    
+
         }
     }
 
