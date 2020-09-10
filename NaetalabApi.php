@@ -27,23 +27,23 @@ if(!class_exists('NaetalabApi')){
             $this->_register_api();
         }
         private function _register_api(){
-            $this->_all_article();
-            $this->_all_product();
+            $this->allPost();
+            $this->allPage();
         }
 
-        private function _all_product(){
+        private function allPage(){
             add_action( 'rest_api_init', function () {
-                register_rest_route( $this->namespace, 'product/all', array(
+                register_rest_route( $this->namespace, 'page/all', array(
                     'methods' => 'GET',
-                    'callback' => 'get_all_product',
+                    'callback' => 'get_all_page',
                 ) );
             } );
         }
-        private function  _all_article(){
+        private function  allPost(){
             add_action( 'rest_api_init', function () {
-                register_rest_route( $this->namespace, 'article/all', array(
+                register_rest_route( $this->namespace, 'post/all', array(
                     'methods' => 'GET',
-                    'callback' => 'get_all_article',
+                    'callback' => 'get_all_post',
                 ) );
             } );
         }
@@ -60,19 +60,36 @@ if(!class_exists('NaetalabApi')){
     register_activation_hook( __FILE__, array($NaetalabApi,'deactivated'));
 
 
-    function get_all_article(){
-        global  $wpdb;
-        $query = "Select * from {$wpdb->prefix}posts where post_type='post' and post_status='publish'";
-        $result = $wpdb->get_results($query,
-            OBJECT);
-        return new WP_REST_Response( $result, 200 );
+    function get_all_post(){
+        // WP_Query arguments
+        $args = array(
+          'post_type'              => array( 'post' ),
+          'post_status'            => array( 'publish' ),
+        );
+
+        // The Query
+        $query = (new WP_Query( $args ))->posts;
+        array_map(function ($data){
+            $data->image = get_the_post_thumbnail_url($data->ID,'thumbnail');
+            return $data ;
+        },$query);
+        return  new WP_REST_Response($query,200);
     }
 
-    function get_all_product(){
+    function get_all_page(){
         global  $wpdb;
-        $query = "Select * from {$wpdb->prefix}posts where post_type='product' and post_status='publish'";
-        $result = $wpdb->get_results($query,
-            OBJECT);
-        return new WP_REST_Response( $result, 200 );
+        // WP_Query arguments
+        $args = array(
+          'post_type'              => array( 'page' ),
+          'post_status'            => array( 'publish' ),
+        );
+
+        // The Query
+        $query = (new WP_Query( $args ))->posts;
+        array_map(function ($data){
+            $data->image = get_the_post_thumbnail_url($data->ID,'thumbnail');
+            return $data ;
+        },$query);
+        return  new WP_REST_Response($query,200);
     }
 }
